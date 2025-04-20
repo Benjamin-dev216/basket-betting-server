@@ -8,7 +8,7 @@ export const findByEmail = async (
   return await userRepository.findOne({ where: { email } });
 };
 
-export const updateUserBalance = async (
+export const addUserBalance = async (
   email: string,
   amount: number
 ): Promise<UserEntity> => {

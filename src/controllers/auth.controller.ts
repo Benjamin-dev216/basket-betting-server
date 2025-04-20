@@ -14,13 +14,12 @@ const signUpHandler = async (req: Request, res: Response) => {
 
   const newUser = await authService.createUser({
     email,
-    hashedPassword,
+    password: hashedPassword,
   });
 
   const token = jwt.sign({ email: newUser.email }, process.env.JWT_SECRET, {
     expiresIn: "24h",
   });
-
 
   if (newUser) {
     res.status(201).json({

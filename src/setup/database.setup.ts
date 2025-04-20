@@ -8,7 +8,6 @@ import { CreateUserRequestType } from "@/types";
 import "dotenv/config";
 
 export const databaseSetup = async (): Promise<void> => {
-
   await AppDataSource.initialize();
 
   // Adding admin user when the database setup
@@ -23,8 +22,8 @@ export const databaseSetup = async (): Promise<void> => {
     );
 
     const adminUser: CreateUserRequestType = {
-      name: process.env.ADMIN_NAME,
-      hashedPassword: adminHashedPassword,
+      email: process.env.ADMIN_EMAIL,
+      password: adminHashedPassword,
       role: "admin",
     };
 

@@ -1,9 +1,8 @@
 /** @format */
 
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-import { CoreEntity } from "./core.entity";
-import { BetSlipEntity } from "./betslip.entity";
-
+import { BetSlipEntity } from "./index";
+import { CoreEntity } from "@/entities/core.entity";
 @Entity("user")
 export class UserEntity extends CoreEntity {
   @PrimaryGeneratedColumn("uuid")
@@ -15,12 +14,12 @@ export class UserEntity extends CoreEntity {
   @Column()
   password: string;
 
-  @Column({ default: 'user' }) // 'user' or 'admin'
-  role: 'user' | 'admin';
+  @Column({ default: "user" }) // 'user' or 'admin'
+  role: "user" | "admin";
 
-  @Column({ type: 'float', default: 0 })
+  @Column({ type: "float", default: 0 })
   balance: number;
 
-  @OneToMany(() => BetSlipEntity, slip => slip.user)
+  @OneToMany(() => BetSlipEntity, (slip) => slip.user)
   bets: BetSlipEntity[];
 }
