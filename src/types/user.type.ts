@@ -2,7 +2,7 @@
 
 export type CreateUserRequestType = {
   uuid?: string;
-  name: string;
-  hashedPassword: string;
+  email: string;
+  password: string;
   role?: string;
 };

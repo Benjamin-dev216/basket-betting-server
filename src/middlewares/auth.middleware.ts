@@ -35,3 +35,8 @@ export const authMiddleware = async(
   }
 };
 
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
+  authMiddleware(req, res, next);
+
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
+  authMiddleware(req, res, next, true);

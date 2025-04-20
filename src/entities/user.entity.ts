@@ -1,19 +1,26 @@
 /** @format */
 
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
 import { CoreEntity } from "./core.entity";
+import { BetSlipEntity } from "./betslip.entity";
 
-@Entity({ name: "user" })
+@Entity("user")
 export class UserEntity extends CoreEntity {
   @PrimaryGeneratedColumn("uuid")
-  uuid: string;
+  id: string;
 
-  @Column({ name: "name" })
-  name: string;
+  @Column({ unique: true })
+  email: string;
 
-  @Column({ name: "hashed_password" })
-  hashedPassword: string;
+  @Column()
+  password: string;
 
-  @Column({ type: "enum", enum: ["user", "admin"], default: "user" })
-  role: string;
+  @Column({ default: 'user' }) // 'user' or 'admin'
+  role: 'user' | 'admin';
+
+  @Column({ type: 'float', default: 0 })
+  balance: number;
+
+  @OneToMany(() => BetSlipEntity, slip => slip.user)
+  bets: BetSlipEntity[];
 }

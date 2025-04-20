@@ -8,16 +8,16 @@ import "dotenv/config";
 import { errorHandlerWrapper } from "@/utils";
 
 const signUpHandler = async (req: Request, res: Response) => {
-  const { name, password } = req.body;
+  const { email, password } = req.body;
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const newUser = await authService.createUser({
-    name,
+    email,
     hashedPassword,
   });
 
-  const token = jwt.sign({ username: newUser.name }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ email: newUser.email }, process.env.JWT_SECRET, {
     expiresIn: "24h",
   });
 
@@ -26,7 +26,7 @@ const signUpHandler = async (req: Request, res: Response) => {
     res.status(201).json({
       token: token,
       isAdmin: newUser.role === "admin",
-      username: newUser.name,
+      email: newUser.email,
     });
   } else {
     res.status(409).json({ message: "User already exists" });
@@ -34,28 +34,28 @@ const signUpHandler = async (req: Request, res: Response) => {
 };
 
 const signInHandler = async (req: Request, res: Response) => {
-  const { name, password } = req.body;
+  const { email, password } = req.body;
 
-  const user = await authService.getUser({ name });
+  const user = await authService.getUser({ email });
 
   if (!user) {
     res.status(409).json({ meesaage: "User not found" });
     return;
   }
 
-  if (!(await bcrypt.compare(password, user.hashedPassword))) {
+  if (!(await bcrypt.compare(password, user.password))) {
     res.status(401).json({ message: "Invalid credentials" });
     return;
   }
 
-  const token = jwt.sign({ username: user.name }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, {
     expiresIn: "24h",
   });
 
   res.status(200).json({
     token: token,
     isAdmin: user.role === "admin",
-    username: user.name,
+    email: user.email,
   });
 };
 

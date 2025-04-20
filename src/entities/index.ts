@@ -1,4 +1,8 @@
 /** @format */
 
 export * from "./user.entity";
-export * from "./feedback.entity"
+export * from "./bet.entity";
+export * from "./betslip.entity";
+export * from "./market.entity";
+export * from "./match.entity";
+export * from "./core.entity";
