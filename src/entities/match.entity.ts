@@ -16,6 +16,6 @@ export class MatchEntity extends CoreEntity {
   @Column()
   startTime: Date;
 
-  @OneToMany(() => MarketEntity, market => market.match)
+  @OneToMany(() => MarketEntity, (market) => market.match)
   markets: MarketEntity[];
 }

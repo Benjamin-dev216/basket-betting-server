@@ -4,31 +4,33 @@ import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import router from "@/routers";
 import { Logger } from "@/utils";
-import { clientUse } from "valid-ip-scope";
-import {
-  authMiddleware,
-  errorHandlerMiddleware,
-  routeMiddleware,
-} from "@/middlewares";
+import http from "http";
+import { errorHandlerMiddleware, routeMiddleware } from "@/middlewares";
+import { startGoalServeWS } from "@/services/goal.ws.service";
+import { startRelayServer } from "@/services/relay.ws.service";
 
 export const backendSetup = () => {
   const app: Express = express();
+  const server = http.createServer(app); // <-- needed for WS
 
   app.use(cors());
   app.use(express.json());
   // app.use(clientUse());
   app.use(routeMiddleware);
-  app.use("/health", (_req: Request, res: Response) => {
+  app.get("/health", (req: Request, res: Response) => {
     res.send("It's healthy!");
-  }); //health check
-
+  });
   app.use("/api", router);
-
   app.use(errorHandlerMiddleware);
 
-  const port = process.env.PORT || 8000;
+  startGoalServeWS().catch((err) => {
+    console.error("❌ Failed to start GoalServe WS:", err);
+  });
 
-  app.listen(port, () => {
-    Logger.info(`Sever is running on ${port}`);
+  startRelayServer(server);
+
+  const port = process.env.PORT || 8000;
+  server.listen(port, () => {
+    Logger.info(`🚀 Server running on port ${port}`);
   });
 };
