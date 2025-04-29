@@ -1,10 +1,10 @@
-type Segment = "Q1" | "Q2" | "Q3" | "Q4" | "H1" | "H2" | "OT" | "FT";
+export type Segment = "Q1" | "Q2" | "Q3" | "Q4" | "H1" | "H2" | "OT" | "FT";
 
-interface MatchStats {
+export interface MatchStats {
   segmentPoints: Record<Segment, { home: number; away: number }>;
 }
 
-interface Bet {
+export interface Bet {
   marketId: number;
   outcomeName: string;
   handicap: string;
@@ -12,14 +12,14 @@ interface Bet {
   amount: number;
 }
 
-type RuleType =
+export type RuleType =
   | "moneyline"
   | "spread"
   | "total"
   | "team_total"
   | "result_total";
 
-interface MarketRule {
+export interface MarketRule {
   type: RuleType;
   segment: Segment;
   team?: "home" | "away";
