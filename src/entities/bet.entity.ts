@@ -1,17 +1,43 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
-import { BetSlipEntity, MarketEntity } from "./index";
-import { CoreEntity } from "@/entities/core.entity";
+// src/entities/Bet.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+} from "typeorm";
+import { UserEntity } from "./user.entity";
+import { CoreEntity } from "./core.entity";
+
 @Entity("bet")
 export class BetEntity extends CoreEntity {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @ManyToOne(() => BetSlipEntity, (slip) => slip.bets)
-  slip: BetSlipEntity;
-
-  @ManyToOne(() => MarketEntity)
-  market: MarketEntity;
+  @ManyToOne(() => UserEntity, (user) => user.bets)
+  user: UserEntity;
 
   @Column()
-  result: "pending" | "won" | "lost";
+  matchId: string;
+
+  @Column()
+  marketId: number;
+
+  @Column()
+  handicap: string;
+
+  @Column()
+  outcomeName: string;
+
+  @Column("decimal", { precision: 6, scale: 2 })
+  odds: number;
+
+  @Column("decimal", { precision: 10, scale: 2 })
+  amount: number;
+
+  @Column({ default: "open" }) // open | settled
+  status: string;
+
+  @Column({ nullable: true }) // win | loss | refund
+  result: string;
 }

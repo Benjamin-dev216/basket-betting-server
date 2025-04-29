@@ -17,9 +17,13 @@ const signUpHandler = async (req: Request, res: Response) => {
     password: hashedPassword,
   });
 
-  const token = jwt.sign({ email: newUser.email }, process.env.JWT_SECRET, {
-    expiresIn: "24h",
-  });
+  const token = jwt.sign(
+    { id: newUser.id, email: newUser.email },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "24h",
+    }
+  );
 
   if (newUser) {
     res.status(201).json({
@@ -38,7 +42,7 @@ const signInHandler = async (req: Request, res: Response) => {
   const user = await authService.getUser({ email });
 
   if (!user) {
-    res.status(409).json({ meesaage: "User not found" });
+    res.status(409).json({ message: "User not found" });
     return;
   }
 
@@ -47,14 +51,17 @@ const signInHandler = async (req: Request, res: Response) => {
     return;
   }
 
-  const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, {
-    expiresIn: "24h",
-  });
+  const token = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "24h",
+    }
+  );
 
   res.status(200).json({
     token: token,
-    isAdmin: user.role === "admin",
-    email: user.email,
+    user: { isAdmin: user.role === "admin", email: user.email },
   });
 };
 

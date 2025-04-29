@@ -4,13 +4,15 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 import { authService } from "@/services";
 
-export const authMiddleware = async(
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction,
-  requireAdmin: boolean=false
+  requireAdmin: boolean = false
 ) => {
-  const token = req.header("Authorization")? req.header("Authorization").replace("Bearer ", ""): null;
+  const token = req.header("Authorization")
+    ? req.header("Authorization").replace("Bearer ", "")
+    : null;
 
   if (!token) {
     res.status(401).json({ error: "Authentication required!" });
@@ -35,7 +37,7 @@ export const authMiddleware = async(
   }
 };
 
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
+export const requireAuth = (req: Request, res: Response, next: NextFunction) =>
   authMiddleware(req, res, next);
 
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>

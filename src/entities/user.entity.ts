@@ -1,8 +1,8 @@
 /** @format */
 
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-import { BetSlipEntity } from "./index";
 import { CoreEntity } from "@/entities/core.entity";
+import { BetEntity } from "./bet.entity";
 @Entity("user")
 export class UserEntity extends CoreEntity {
   @PrimaryGeneratedColumn("uuid")
@@ -17,9 +17,9 @@ export class UserEntity extends CoreEntity {
   @Column({ default: "user" }) // 'user' or 'admin'
   role: "user" | "admin";
 
-  @Column({ type: "float", default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   balance: number;
 
-  @OneToMany(() => BetSlipEntity, (slip) => slip.user)
-  bets: BetSlipEntity[];
+  @OneToMany(() => BetEntity, (bet) => bet.user)
+  bets: BetEntity[];
 }

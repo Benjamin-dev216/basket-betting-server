@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import axios from "axios";
 import { createClient } from "redis";
 import dotenv from "dotenv";
+import { getFinishedSegmentByStateCode, settleBets } from "./settleBets";
 
 dotenv.config();
 
@@ -105,7 +106,6 @@ function parseGoalServeUpdate(data: UPDTMessage) {
       : [],
     statsRaw: data.stat || null,
     statsParsed: data.stat ? formatStats(data.stat) : null,
-    numericStats: data.stats || null,
     odds: data.odds
       ? data.odds.map((o: any) => ({
           marketId: o.id,
@@ -168,6 +168,15 @@ export async function startGoalServeWS() {
             JSON.stringify(normalized),
             { EX: REDIS_TTL }
           );
+          if (msg.sc === 1082 || msg.sc === 1083 || msg.sc === 1084) {
+            const finishedSegment = getFinishedSegmentByStateCode(
+              msg.sc,
+              msg.pc
+            );
+            if (finishedSegment) {
+              await settleBets(normalized, finishedSegment);
+            }
+          }
         }
 
         // Handle available events ("avl") as before.
