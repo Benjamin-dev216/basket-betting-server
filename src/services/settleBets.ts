@@ -96,7 +96,7 @@ export function getMarketSegment(
   if ([180086, 180087].includes(id)) return "Q2";
   if ([180060, 180062, 584, 180753, 768].includes(id)) return "H1";
   if ([180069, 769, 770].includes(id)) return "H2";
-  if ([2021, 2022].includes(id)) return "FT";
+  if ([2021, 2022, 1446, 1450].includes(id)) return "FT";
 
   return null; // fallback for unknown
 }

@@ -20,6 +20,12 @@ export class UserEntity extends CoreEntity {
   @Column("decimal", { precision: 10, scale: 2, default: 0 })
   balance: number;
 
+  @Column("decimal", { precision: 10, scale: 2, default: 3 })
+  pendingTime1: number;
+
+  @Column("decimal", { precision: 10, scale: 2, default: 5 })
+  pendingTime2: number;
+
   @OneToMany(() => BetEntity, (bet) => bet.user)
   bets: BetEntity[];
 }

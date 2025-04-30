@@ -14,7 +14,7 @@ const redisClient = createClient();
 redisClient.on("error", (err) => console.error("[Redis] Error:", err));
 
 const API_KEY = process.env.GOALSERVE_KEY!;
-const TOKEN_URL = "http://85.217.222.218:8765/api/v1/auth/gettoken";
+const TOKEN_URL = "http://152.89.28.69:8765/api/v1/auth/gettoken";
 
 interface AVLMessage {
   mt: "avl";
@@ -137,7 +137,7 @@ export async function startGoalServeWS() {
 
   try {
     const token = await getAccessToken();
-    const wsUrl = `ws://85.217.222.218:8765/ws/${SPORT_TYPE}?tkn=${token}`;
+    const wsUrl = `ws://152.89.28.69:8765/ws/${SPORT_TYPE}?tkn=${token}`;
     const ws = new WebSocket(wsUrl);
 
     ws.on("open", () => console.log("[GoalServeWS] Connected ✅"));

@@ -30,6 +30,10 @@ const signUpHandler = async (req: Request, res: Response) => {
       token: token,
       isAdmin: newUser.role === "admin",
       email: newUser.email,
+      pendingTime: {
+        time1: newUser.pendingTime1,
+        time2: newUser.pendingTime2,
+      },
     });
   } else {
     res.status(409).json({ message: "User already exists" });
@@ -61,7 +65,14 @@ const signInHandler = async (req: Request, res: Response) => {
 
   res.status(200).json({
     token: token,
-    user: { isAdmin: user.role === "admin", email: user.email },
+    user: {
+      isAdmin: user.role === "admin",
+      email: user.email,
+      pendingTime: {
+        time1: user.pendingTime1,
+        time2: user.pendingTime2,
+      },
+    },
   });
 };
 
