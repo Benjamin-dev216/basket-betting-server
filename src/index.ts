@@ -1,5 +1,5 @@
 /** @format */
-
+import "tsconfig-paths/register";
 import { databaseSetup } from "./setup";
 import { backendSetup } from "./setup/backend.setup";
 import { Logger, MESSAGES } from "./utils";
