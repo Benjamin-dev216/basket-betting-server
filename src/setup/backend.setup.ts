@@ -5,7 +5,7 @@ import cors from "cors";
 import router from "@/routers";
 import { Logger } from "@/utils";
 import http from "http";
-import { errorHandlerMiddleware, routeMiddleware } from "@/middlewares";
+import { errorHandlerMiddleware } from "@/middlewares";
 import { startGoalServeWS } from "@/services/goal.ws.service";
 import { startRelayServer } from "@/services/relay.ws.service";
 
@@ -16,7 +16,6 @@ export const backendSetup = () => {
   app.use(cors());
   app.use(express.json());
   // app.use(clientUse());
-  app.use(routeMiddleware);
   app.get("/health", (req: Request, res: Response) => {
     res.send("It's healthy!");
   });
