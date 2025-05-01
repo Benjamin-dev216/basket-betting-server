@@ -2,7 +2,7 @@
   "scripts": {
     "dev": "npx nodemon src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node -r tsconfig-paths/register dist/index.js",
     "db:seed": "ts-node src/seeds/user.seeder.ts",
     "test": "jest",
     "test:watch": "jest --watch"
