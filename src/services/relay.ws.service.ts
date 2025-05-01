@@ -124,7 +124,7 @@ export const startRelayServer = async (server: Server) => {
 
         // Send odds only to subscribers of that match
         // console.log(matchId, client.matchId, odds);
-        console.log(client.matchId, client.matchId === matchId);
+        // console.log(client.matchId, client.matchId === matchId);
 
         if (client.matchId === matchId && odds) {
           const oddsPayload = JSON.stringify({

@@ -161,22 +161,22 @@ export async function startGoalServeWS() {
             );
             normalized = normalizeUpdate(msg);
           }
-
+          let sc = Number(msg.sc);
+          if (sc === 1082 || sc === 1083 || sc === 1084) {
+            const finishedSegment = getFinishedSegmentByStateCode(
+              sc,
+              Number(msg.pc)
+            );
+            if (finishedSegment) {
+              await settleBets(normalized, finishedSegment);
+            }
+          }
           await redisClient.publish(REDIS_CHANNEL, JSON.stringify(normalized));
           await redisClient.set(
             `match:${normalized.matchId}`,
             JSON.stringify(normalized),
             { EX: REDIS_TTL }
           );
-          if (msg.sc === 1082 || msg.sc === 1083 || msg.sc === 1084) {
-            const finishedSegment = getFinishedSegmentByStateCode(
-              msg.sc,
-              msg.pc
-            );
-            if (finishedSegment) {
-              await settleBets(normalized, finishedSegment);
-            }
-          }
         }
 
         // Handle available events ("avl") as before.

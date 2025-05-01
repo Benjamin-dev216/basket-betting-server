@@ -1410,7 +1410,7 @@ export const marketRules: Record<number, MarketRule> = {
   2022: { type: "team_total", segment: "FT", team: "away" },
 
   1446: { type: "spread", segment: "FT" },
-  1450: { type: "team_total", segment: "FT" },
+  1450: { type: "total", segment: "FT" },
 
   180069: { type: "moneyline", segment: "H2" },
 };

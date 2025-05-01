@@ -16,7 +16,7 @@ const placeBetController = async (req: Request, res: Response) => {
       : null;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const rlt = await authService.getUser(decoded);
+    const rlt = await authService.getUser({ email: decoded.email });
 
     const userId = rlt.id; // from auth middleware
     const userRepo = AppDataSource.getRepository(UserEntity);

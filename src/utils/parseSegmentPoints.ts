@@ -9,7 +9,10 @@ export const parseSegmentPoints = (
     if (Array.isArray(value) && value.length === 2) {
       const [home, away] = value;
       if (typeof home === "number" && typeof away === "number") {
-        result[key as Segment] = { home, away };
+        result[key === "T" ? ("FT" as Segment) : (key as Segment)] = {
+          home,
+          away,
+        };
       }
     }
   }

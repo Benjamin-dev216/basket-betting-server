@@ -64,12 +64,12 @@ export const getFinishedSegmentByStateCode = (
   if (code === 1083) {
     // End of Half
     switch (period) {
-      case 2:
+      case 2 | 3:
         return "H1"; // after Q2
-      case 4:
+      case 4 | 5:
         return "H2"; // after Q4
       default:
-        return null;
+        return "H2";
     }
   }
 
