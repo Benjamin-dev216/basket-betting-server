@@ -10,7 +10,9 @@ const REDIS_CHANNEL = "goalserve:basketball";
 const REDIS_TTL = 10;
 const SPORT_TYPE = "basket"; // use 'basket' per API spec
 
-const redisClient = createClient();
+const redisClient = createClient({
+  url: process.env.REDIS_URL || "redis://localhost:6379",
+});
 redisClient.on("error", (err) => console.error("[Redis] Error:", err));
 
 const API_KEY = process.env.GOALSERVE_KEY!;
@@ -140,7 +142,7 @@ export async function startGoalServeWS() {
     const wsUrl = `ws://152.89.28.69:8765/ws/${SPORT_TYPE}?tkn=${token}`;
     const ws = new WebSocket(wsUrl);
 
-    ws.on("open", () => console.log("[GoalServeWS] Connected ✅"));
+    // ws.on("open", () => console.log("[GoalServeWS] Connected ✅"));
 
     ws.on("message", async (data: WebSocket.RawData) => {
       try {
@@ -172,11 +174,11 @@ export async function startGoalServeWS() {
             }
           }
           await redisClient.publish(REDIS_CHANNEL, JSON.stringify(normalized));
-          await redisClient.set(
-            `match:${normalized.matchId}`,
-            JSON.stringify(normalized),
-            { EX: REDIS_TTL }
-          );
+          // await redisClient.set(
+          //   `match:${normalized.matchId}`,
+          //   JSON.stringify(normalized),
+          //   { EX: REDIS_TTL }
+          // );
         }
 
         // Handle available events ("avl") as before.
@@ -202,11 +204,11 @@ export async function startGoalServeWS() {
 
           await redisClient.publish(REDIS_CHANNEL, payload);
 
-          await redisClient.set("latest:matchList", payload, { EX: 20 }); // expires in 10s
+          // await redisClient.set("latest:matchList", payload, { EX: 20 }); // expires in 10s
 
-          console.log(
-            `[GoalServeWS] Sent ${matchList.length} matches to channel`
-          );
+          // // console.log(
+          //   `[GoalServeWS] Sent ${matchList.length} matches to channel`
+          // );
         }
       } catch (err) {
         console.error(

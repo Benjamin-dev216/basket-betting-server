@@ -2,7 +2,7 @@
 
 class CustomLogger {
   log(...args: any) {
-    console.log(...args);
+    // console.log(...args);
   }
 
   info(...args: any) {

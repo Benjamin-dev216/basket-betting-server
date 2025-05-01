@@ -1,5 +1,7 @@
 import Redis from "ioredis";
-import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const redisClient = new Redis({
   host: process.env.REDIS_HOST || "127.0.0.1",
@@ -9,7 +11,7 @@ export const redisClient = new Redis({
 });
 
 redisClient.on("connect", () => {
-  console.log("[Redis] Connected ✅");
+  // console.log("[Redis] Connected ✅");
 });
 
 redisClient.on("error", (err) => {
