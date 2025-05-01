@@ -1,6 +1,6 @@
 /** @format */
 
-import { Logger } from "@/utils";
+import { Logger } from "../utils";
 import { Request, Response, NextFunction } from "express";
 
 export const errorHandlerMiddleware = (

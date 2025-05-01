@@ -27,7 +27,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@/*": ["*"]
+      "../*": ["*"]
     }
   },
   "ts-node": {

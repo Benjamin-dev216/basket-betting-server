@@ -1,7 +1,7 @@
 /** @format */
 
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-import { CoreEntity } from "@/entities/core.entity";
+import { CoreEntity } from "../entities/core.entity";
 import { BetEntity } from "./bet.entity";
 @Entity("user")
 export class UserEntity extends CoreEntity {

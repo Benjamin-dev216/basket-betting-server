@@ -1,4 +1,4 @@
-import { Bet, RuleType, MatchStats, MarketRule } from "@/types/market.rule";
+import { Bet, RuleType, MatchStats, MarketRule } from "../types/market.rule";
 import { marketRules } from "./const";
 
 const ruleExecutors: Record<

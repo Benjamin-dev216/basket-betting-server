@@ -1,8 +1,8 @@
 /** @format */
 
-import { authController, userController } from "@/controllers";
+import { authController, userController } from "../controllers";
 import { Router } from "express";
-import { requireAdmin } from "@/middlewares";
+import { requireAdmin } from "../middlewares";
 
 export const userRouter = Router();
 

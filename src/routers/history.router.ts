@@ -1,6 +1,6 @@
-import { historyController } from "@/controllers";
+import { historyController } from "../controllers";
 import { Router } from "express";
-import { requireAuth } from "@/middlewares";
+import { requireAuth } from "../middlewares";
 
 export const historyRouter = Router();
 

@@ -2,11 +2,11 @@
 
 import { Request, Response } from "express";
 import "dotenv/config";
-import { AppDataSource } from "@/setup/datasource";
+import { AppDataSource } from "../setup/datasource";
 import jwt from "jsonwebtoken";
-import { authService } from "@/services";
-import { UserEntity, BetEntity } from "@/entities";
-import { errorHandlerWrapper } from "@/utils";
+import { authService } from "../services";
+import { UserEntity, BetEntity } from "../entities";
+import { errorHandlerWrapper } from "../utils";
 
 const placeBetController = async (req: Request, res: Response) => {
   try {

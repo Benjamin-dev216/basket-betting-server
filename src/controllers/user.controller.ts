@@ -1,10 +1,10 @@
 /** @format */
 
-import { authService, userService } from "@/services";
+import { authService, userService } from "../services";
 import { Request, response, Response } from "express";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
-import { errorHandlerWrapper } from "@/utils";
+import { errorHandlerWrapper } from "../utils";
 
 const addBalance = async (req: Request, res: Response) => {
   try {

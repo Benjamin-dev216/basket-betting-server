@@ -2,12 +2,12 @@
 
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
-import router from "@/routers";
-import { Logger } from "@/utils";
+import router from "../routers";
+import { Logger } from "../utils";
 import http from "http";
-import { errorHandlerMiddleware } from "@/middlewares";
-import { startGoalServeWS } from "@/services/goal.ws.service";
-import { startRelayServer } from "@/services/relay.ws.service";
+import { errorHandlerMiddleware } from "../middlewares";
+import { startGoalServeWS } from "../services/goal.ws.service";
+import { startRelayServer } from "../services/relay.ws.service";
 
 export const backendSetup = () => {
   const app: Express = express();

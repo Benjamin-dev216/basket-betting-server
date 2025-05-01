@@ -1,4 +1,4 @@
-import { MarketRule } from "@/types/market.rule";
+import { MarketRule } from "../types/market.rule";
 
 export const SENT_POLARITY = {
   GOOD: "good",

@@ -1,7 +1,7 @@
 /** @format */
 
 import { DataSource } from "typeorm";
-import { UserEntity, BetEntity } from "@/entities";
+import { UserEntity, BetEntity } from "../entities";
 import "dotenv/config";
 
 export const AppDataSource = new DataSource({

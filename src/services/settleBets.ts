@@ -1,8 +1,8 @@
 // src/services/settleBets.ts
-import { AppDataSource } from "@/setup/datasource";
-import { UserEntity, BetEntity } from "@/entities";
-import { evaluateBetResult } from "@/utils/ruleExecutor";
-import { parseSegmentPoints } from "@/utils/parseSegmentPoints";
+import { AppDataSource } from "../setup/datasource";
+import { UserEntity, BetEntity } from "../entities";
+import { evaluateBetResult } from "../utils/ruleExecutor";
+import { parseSegmentPoints } from "../utils/parseSegmentPoints";
 
 export const settleBets = async (match: any, finishedSegment: string) => {
   const betRepo = AppDataSource.getRepository(BetEntity);

@@ -1,5 +1,5 @@
-import { UserEntity } from "@/entities";
-import { AppDataSource } from "@/setup/datasource";
+import { UserEntity } from "../entities";
+import { AppDataSource } from "../setup/datasource";
 
 export const findByEmail = async (
   email: string
