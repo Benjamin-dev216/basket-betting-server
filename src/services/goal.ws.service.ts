@@ -34,7 +34,6 @@ interface UPDTMessage {
   t2: { name?: string; n?: string; kit?: { si?: string | null } };
   odds: any[];
   stats: Record<string, any>;
-  // additional optional fields (competition, mid, cms, stat, cmp_id, cmp_name, etc.)
   [key: string]: any;
 }
 
@@ -55,19 +54,14 @@ function normalizeUpdate(msg: UPDTMessage) {
   };
 }
 
-/**
- * New parser that enriches and normalizes the "updt" message.
- */
 function getTeam(teamData: any) {
   return {
     name: teamData.n || teamData.name || "Unknown",
     kitColors: teamData.kit?.si ? teamData.kit.si.split(",") : null,
   };
 }
-function parseGoalServeUpdate(data: UPDTMessage) {
-  // Helper to extract team data
 
-  // Helper to parse the stat string into key-value pairs
+function parseGoalServeUpdate(data: UPDTMessage) {
   function formatStats(statStr: string | undefined) {
     if (!statStr) return null;
     const segments = statStr.split("|").filter(Boolean);
@@ -79,12 +73,9 @@ function parseGoalServeUpdate(data: UPDTMessage) {
     return stats;
   }
 
-  // Extract a score from the `sc` field if available;
-  // otherwise you can leave it as a raw string or perform additional parsing.
   let matchScore = data.sc ? data.sc : null;
 
   return {
-    // Use mid if available; otherwise fallback to id.
     matchId: data.id,
     sport: data.sp,
     updated: data.uptd,
@@ -98,7 +89,6 @@ function parseGoalServeUpdate(data: UPDTMessage) {
     },
     stp: data.stp,
     stats: data.stats,
-    // If available, map the list of match events (cms)
     cms: data.cms
       ? data.cms.map((e: any) => ({
           eventId: e.id,
@@ -134,6 +124,8 @@ async function getAccessToken(): Promise<string> {
   return response.data.token;
 }
 
+let currentWS: WebSocket | null = null;
+
 export async function startGoalServeWS() {
   if (!redisClient.isOpen) await redisClient.connect();
 
@@ -141,6 +133,7 @@ export async function startGoalServeWS() {
     const token = await getAccessToken();
     const wsUrl = `ws://152.89.28.69:8765/ws/${SPORT_TYPE}?tkn=${token}`;
     const ws = new WebSocket(wsUrl);
+    currentWS = ws;
 
     // ws.on("open", () => console.log("[GoalServeWS] Connected ✅"));
 
@@ -151,8 +144,6 @@ export async function startGoalServeWS() {
         if (msg.sp !== SPORT_TYPE) return;
 
         if (msg.mt === "updt") {
-          // Try to enrich the update using the new parser.
-          // (If it fails, fallback to the simple normalizer.)
           let normalized;
           try {
             normalized = parseGoalServeUpdate(msg);
@@ -181,7 +172,6 @@ export async function startGoalServeWS() {
           // );
         }
 
-        // Handle available events ("avl") as before.
         if (msg.mt === "avl") {
           const matchList = msg.evts.map((match) => {
             return {
@@ -231,3 +221,17 @@ export async function startGoalServeWS() {
     setTimeout(startGoalServeWS, 5000);
   }
 }
+
+// ✅ Hourly token refresh and reconnection
+setInterval(async () => {
+  try {
+    console.log("[GoalServeWS] Refreshing token + reconnecting...");
+    if (currentWS && currentWS.readyState === WebSocket.OPEN) {
+      currentWS.close(); // triggers your reconnect logic
+    } else {
+      await startGoalServeWS(); // in case it's already closed
+    }
+  } catch (err) {
+    console.error("[GoalServeWS] Token refresh/connect failed:", err);
+  }
+}, 60 * 60 * 1000); // 1 hour

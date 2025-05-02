@@ -1,4 +1,4 @@
-import { UserEntity } from "../entities";
+import { BetEntity, UserEntity } from "../entities";
 import { AppDataSource } from "../setup/datasource";
 
 export const findByEmail = async (
@@ -44,6 +44,12 @@ export const getAllUsers = async (): Promise<UserEntity[]> => {
 
 export const deleteUser = async (id: string): Promise<void> => {
   const userRepository = AppDataSource.getRepository(UserEntity);
+  const betRepository = AppDataSource.getRepository(BetEntity);
+
+  // Delete bets related to the user first
+  await betRepository.delete({ user: { id: id } });
+
+  // Then delete the user
   await userRepository.delete(id);
 };
 export const updateUser = async (id: string, user: any): Promise<void> => {

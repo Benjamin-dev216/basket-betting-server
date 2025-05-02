@@ -23,7 +23,7 @@ export class BetEntity extends CoreEntity {
   @Column()
   marketId: number;
 
-  @Column()
+  @Column({ nullable: true })
   handicap: string;
 
   @Column()
