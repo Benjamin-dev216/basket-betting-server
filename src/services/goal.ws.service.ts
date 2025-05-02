@@ -165,11 +165,11 @@ async function connectWebSocket(token: string) {
         }
 
         await redisClient.publish(REDIS_CHANNEL, JSON.stringify(normalized));
-        await redisClient.set(
-          `match:${normalized.matchId}`,
-          JSON.stringify(normalized),
-          { EX: REDIS_TTL }
-        );
+        // await redisClient.set(
+        //   `match:${normalized.matchId}`,
+        //   JSON.stringify(normalized),
+        //   { EX: REDIS_TTL }
+        // );
       }
 
       if (msg.mt === "avl") {
@@ -191,7 +191,7 @@ async function connectWebSocket(token: string) {
         });
 
         await redisClient.publish(REDIS_CHANNEL, payload);
-        await redisClient.set("latest:matchList", payload, { EX: 20 });
+        // await redisClient.set("latest:matchList", payload, { EX: 20 });
 
         console.log(
           `[GoalServeWS] Sent ${matchList.length} matches to channel`
