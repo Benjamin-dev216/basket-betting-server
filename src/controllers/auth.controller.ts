@@ -18,7 +18,7 @@ const signUpHandler = async (req: Request, res: Response) => {
   });
 
   const token = jwt.sign(
-    { id: newUser.id, email: newUser.email },
+    { id: newUser?.id, email: newUser?.email },
     process.env.JWT_SECRET,
     {
       expiresIn: "24h",
@@ -56,7 +56,7 @@ const signInHandler = async (req: Request, res: Response) => {
   }
 
   const token = jwt.sign(
-    { id: user.id, email: user.email },
+    { id: user?.id, email: user?.email },
     process.env.JWT_SECRET,
     {
       expiresIn: "24h",
