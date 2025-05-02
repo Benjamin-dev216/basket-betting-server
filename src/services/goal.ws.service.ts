@@ -8,7 +8,7 @@ dotenv.config();
 
 const REDIS_CHANNEL = "goalserve:basketball";
 const REDIS_TTL = 10;
-const SPORT_TYPE = "basket"; // use 'basket' per API spec
+const SPORT_TYPE = "basket";
 
 const redisClient = createClient();
 redisClient.on("error", (err) => console.error("[Redis] Error:", err));
@@ -32,7 +32,13 @@ interface UPDTMessage {
   t2: { name?: string; n?: string; kit?: { si?: string | null } };
   odds: any[];
   stats: Record<string, any>;
-  // additional optional fields (competition, mid, cms, stat, cmp_id, cmp_name, etc.)
+  sc?: number | string;
+  pc?: number;
+  stp?: number;
+  cms?: any[];
+  stat?: string;
+  cmp_id?: string | number;
+  cmp_name?: string;
   [key: string]: any;
 }
 
@@ -53,19 +59,14 @@ function normalizeUpdate(msg: UPDTMessage) {
   };
 }
 
-/**
- * New parser that enriches and normalizes the "updt" message.
- */
 function getTeam(teamData: any) {
   return {
     name: teamData.n || teamData.name || "Unknown",
     kitColors: teamData.kit?.si ? teamData.kit.si.split(",") : null,
   };
 }
-function parseGoalServeUpdate(data: UPDTMessage) {
-  // Helper to extract team data
 
-  // Helper to parse the stat string into key-value pairs
+function parseGoalServeUpdate(data: UPDTMessage) {
   function formatStats(statStr: string | undefined) {
     if (!statStr) return null;
     const segments = statStr.split("|").filter(Boolean);
@@ -77,12 +78,7 @@ function parseGoalServeUpdate(data: UPDTMessage) {
     return stats;
   }
 
-  // Extract a score from the `sc` field if available;
-  // otherwise you can leave it as a raw string or perform additional parsing.
-  let matchScore = data.sc ? data.sc : null;
-
   return {
-    // Use mid if available; otherwise fallback to id.
     matchId: data.id,
     sport: data.sp,
     updated: data.uptd,
@@ -96,7 +92,6 @@ function parseGoalServeUpdate(data: UPDTMessage) {
     },
     stp: data.stp,
     stats: data.stats,
-    // If available, map the list of match events (cms)
     cms: data.cms
       ? data.cms.map((e: any) => ({
           eventId: e.id,
@@ -132,100 +127,112 @@ async function getAccessToken(): Promise<string> {
   return response.data.token;
 }
 
+let ws: WebSocket | null = null;
+
+async function connectWebSocket(token: string) {
+  const wsUrl = `ws://152.89.28.69:8765/ws/${SPORT_TYPE}?tkn=${token}`;
+  ws = new WebSocket(wsUrl);
+
+  ws.on("open", () => console.log("[GoalServeWS] Connected ✅"));
+
+  ws.on("message", async (data: WebSocket.RawData) => {
+    try {
+      const msg = JSON.parse(data.toString()) as IncomingMessage;
+
+      if (msg.sp !== SPORT_TYPE) return;
+
+      if (msg.mt === "updt") {
+        let normalized;
+        try {
+          normalized = parseGoalServeUpdate(msg);
+        } catch (err) {
+          console.error(
+            "[GoalServeWS] parseGoalServeUpdate failed, falling back:",
+            (err as Error).message
+          );
+          normalized = normalizeUpdate(msg);
+        }
+
+        const sc = Number(msg.sc);
+        if (sc === 1082 || sc === 1083 || sc === 1084) {
+          const finishedSegment = getFinishedSegmentByStateCode(
+            sc,
+            Number(msg.pc)
+          );
+          if (finishedSegment) {
+            await settleBets(normalized, finishedSegment);
+          }
+        }
+
+        await redisClient.publish(REDIS_CHANNEL, JSON.stringify(normalized));
+        await redisClient.set(
+          `match:${normalized.matchId}`,
+          JSON.stringify(normalized),
+          { EX: REDIS_TTL }
+        );
+      }
+
+      if (msg.mt === "avl") {
+        const matchList = msg.evts.map((match) => ({
+          eventId: match.id,
+          matchId: match.id,
+          competition: match.cmp_name,
+          teams: {
+            home: getTeam(match.t1),
+            away: getTeam(match.t2),
+          },
+          pc: match.pc,
+        }));
+
+        const payload = JSON.stringify({
+          type: "matchList",
+          sport: msg.sp,
+          matches: matchList,
+        });
+
+        await redisClient.publish(REDIS_CHANNEL, payload);
+        await redisClient.set("latest:matchList", payload, { EX: 20 });
+
+        console.log(
+          `[GoalServeWS] Sent ${matchList.length} matches to channel`
+        );
+      }
+    } catch (err) {
+      console.error("[GoalServeWS] JSON Parse Error:", (err as Error).message);
+    }
+  });
+
+  ws.on("close", () => {
+    console.warn("[GoalServeWS] Disconnected. Reconnecting in 3s...");
+    setTimeout(() => startGoalServeWS(), 3000);
+  });
+
+  ws.on("error", (err) => {
+    console.error("[GoalServeWS] WebSocket Error:", err);
+  });
+}
+
 export async function startGoalServeWS() {
   if (!redisClient.isOpen) await redisClient.connect();
 
-  try {
-    const token = await getAccessToken();
-    const wsUrl = `ws://152.89.28.69:8765/ws/${SPORT_TYPE}?tkn=${token}`;
-    const ws = new WebSocket(wsUrl);
+  async function refreshTokenAndReconnect() {
+    try {
+      const token = await getAccessToken();
+      console.log("[GoalServeWS] Fetched new token");
 
-    ws.on("open", () => console.log("[GoalServeWS] Connected ✅"));
-
-    ws.on("message", async (data: WebSocket.RawData) => {
-      try {
-        const msg = JSON.parse(data.toString()) as IncomingMessage;
-
-        if (msg.sp !== SPORT_TYPE) return;
-
-        if (msg.mt === "updt") {
-          // Try to enrich the update using the new parser.
-          // (If it fails, fallback to the simple normalizer.)
-          let normalized;
-          try {
-            normalized = parseGoalServeUpdate(msg);
-          } catch (err) {
-            console.error(
-              "[GoalServeWS] parseGoalServeUpdate failed, falling back to normalizeUpdate:",
-              (err as Error).message
-            );
-            normalized = normalizeUpdate(msg);
-          }
-          let sc = Number(msg.sc);
-          if (sc === 1082 || sc === 1083 || sc === 1084) {
-            const finishedSegment = getFinishedSegmentByStateCode(
-              sc,
-              Number(msg.pc)
-            );
-            if (finishedSegment) {
-              await settleBets(normalized, finishedSegment);
-            }
-          }
-          await redisClient.publish(REDIS_CHANNEL, JSON.stringify(normalized));
-          await redisClient.set(
-            `match:${normalized.matchId}`,
-            JSON.stringify(normalized),
-            { EX: REDIS_TTL }
-          );
-        }
-
-        // Handle available events ("avl") as before.
-        if (msg.mt === "avl") {
-          const matchList = msg.evts.map((match) => {
-            return {
-              eventId: match.id,
-              matchId: match.id,
-              competition: match.cmp_name,
-              teams: {
-                home: getTeam(match.t1),
-                away: getTeam(match.t2),
-              },
-              pc: match.pc,
-            };
-          });
-
-          const payload = JSON.stringify({
-            type: "matchList",
-            sport: msg.sp,
-            matches: matchList,
-          });
-
-          await redisClient.publish(REDIS_CHANNEL, payload);
-
-          await redisClient.set("latest:matchList", payload, { EX: 20 }); // expires in 10s
-
-          console.log(
-            `[GoalServeWS] Sent ${matchList.length} matches to channel`
-          );
-        }
-      } catch (err) {
-        console.error(
-          "[GoalServeWS] JSON Parse Error:",
-          (err as Error).message
-        );
+      if (ws) {
+        ws.removeAllListeners();
+        ws.terminate();
       }
-    });
 
-    ws.on("close", () => {
-      console.warn("[GoalServeWS] Disconnected. Reconnecting in 3s...");
-      setTimeout(startGoalServeWS, 3000);
-    });
-
-    ws.on("error", (err) => {
-      console.error("[GoalServeWS] WebSocket Error:", err);
-    });
-  } catch (err) {
-    console.error("[GoalServeWS] Startup Error:", (err as Error).message);
-    setTimeout(startGoalServeWS, 5000);
+      await connectWebSocket(token);
+    } catch (err) {
+      console.error("[GoalServeWS] Token refresh/connect failed:", err);
+    }
   }
+
+  await refreshTokenAndReconnect();
+
+  // Refresh token every hour
+  setInterval(refreshTokenAndReconnect, 60 * 60 * 1000);
 }
