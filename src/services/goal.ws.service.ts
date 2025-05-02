@@ -121,8 +121,6 @@ function parseGoalServeUpdate(data: UPDTMessage) {
 
 async function getAccessToken(): Promise<string> {
   const now = Date.now();
-
-  // reuse token for 50 mins
   if (cachedToken && now - tokenFetchedAt < 50 * 60 * 1000) {
     return cachedToken;
   }
@@ -133,9 +131,13 @@ async function getAccessToken(): Promise<string> {
   const gotLock = await redisClient.set(LOCK_KEY, "1", { NX: true, EX: 10 });
   if (!gotLock) {
     console.log("[Token] Waiting for another instance to fetch token...");
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
       const token = await redisClient.get(TOKEN_KEY);
-      if (token) return token;
+      if (token) {
+        cachedToken = token;
+        tokenFetchedAt = Date.now();
+        return token;
+      }
       await wait(1000);
     }
     throw new Error("Timeout waiting for token from other instance");
@@ -150,11 +152,14 @@ async function getAccessToken(): Promise<string> {
 
     cachedToken = response.data.token;
     tokenFetchedAt = Date.now();
-
     await redisClient.set(TOKEN_KEY, cachedToken, { EX: 3600 });
     return cachedToken;
-  } catch (err) {
-    throw new Error("Failed to fetch token: " + (err as Error).message);
+  } catch (err: any) {
+    if (err.response?.status === 429) {
+      console.warn("[Token] Rate limit hit (429). Backing off for 30s...");
+      await wait(30000); // wait 30s before retrying
+    }
+    throw new Error("Failed to fetch token: " + err.message);
   } finally {
     await redisClient.del(LOCK_KEY);
   }
@@ -246,7 +251,9 @@ export async function startGoalServeWS() {
 
     ws.on("close", () => {
       console.warn("[GoalServeWS] Disconnected. Reconnecting in 3s...");
-      setTimeout(startGoalServeWS, 3000);
+      setTimeout(() => {
+        startGoalServeWS();
+      }, Math.floor(Math.random() * 5000)); // Delay startup by 0–5 seconds
     });
 
     ws.on("error", (err) => {
