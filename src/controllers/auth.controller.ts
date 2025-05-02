@@ -72,6 +72,7 @@ const signInHandler = async (req: Request, res: Response) => {
         time1: user.pendingTime1,
         time2: user.pendingTime2,
       },
+      balance: user.balance,
     },
   });
 };
