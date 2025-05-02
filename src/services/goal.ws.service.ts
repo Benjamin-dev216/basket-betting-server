@@ -6,6 +6,12 @@ import { getFinishedSegmentByStateCode, settleBets } from "./settleBets";
 
 dotenv.config();
 
+import { setTimeout as wait } from "timers/promises";
+
+// globally cache token and timestamp
+let cachedToken: string | null = null;
+let tokenFetchedAt = 0;
+
 const REDIS_CHANNEL = "goalserve:basketball";
 const REDIS_TTL = 10;
 const SPORT_TYPE = "basket"; // use 'basket' per API spec
@@ -114,14 +120,44 @@ function parseGoalServeUpdate(data: UPDTMessage) {
 }
 
 async function getAccessToken(): Promise<string> {
-  const response = await axios.post(
-    TOKEN_URL,
-    { apiKey: API_KEY },
-    {
-      headers: { "Content-Type": "application/json" },
+  const now = Date.now();
+
+  // reuse token for 50 mins
+  if (cachedToken && now - tokenFetchedAt < 50 * 60 * 1000) {
+    return cachedToken;
+  }
+
+  const LOCK_KEY = "token:lock";
+  const TOKEN_KEY = "token:value";
+
+  const gotLock = await redisClient.set(LOCK_KEY, "1", { NX: true, EX: 10 });
+  if (!gotLock) {
+    console.log("[Token] Waiting for another instance to fetch token...");
+    for (let i = 0; i < 10; i++) {
+      const token = await redisClient.get(TOKEN_KEY);
+      if (token) return token;
+      await wait(1000);
     }
-  );
-  return response.data.token;
+    throw new Error("Timeout waiting for token from other instance");
+  }
+
+  try {
+    const response = await axios.post(
+      TOKEN_URL,
+      { apiKey: API_KEY },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    cachedToken = response.data.token;
+    tokenFetchedAt = Date.now();
+
+    await redisClient.set(TOKEN_KEY, cachedToken, { EX: 3600 });
+    return cachedToken;
+  } catch (err) {
+    throw new Error("Failed to fetch token: " + (err as Error).message);
+  } finally {
+    await redisClient.del(LOCK_KEY);
+  }
 }
 
 let currentWS: WebSocket | null = null;
